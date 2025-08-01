@@ -25,7 +25,7 @@ function App() {
 
   return (
     <div>
-      <h1>ML Image Capture App</h1>
+      <h1>Real Time ML</h1>
       <input
         value={label}
         onChange={(e) => setLabel(e.target.value)}

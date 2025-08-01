@@ -48,6 +48,15 @@ def train():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    global model
+    model_path = 'model/model.pkl'
+    if not os.path.exists(model_path):
+        return jsonify({'error': 'Model not found. Please train the model first.'}), 404
+    
+    if model is None:
+        with open(model_path, 'rb') as f:
+            model = pickle.load(f)
+
     data = request.get_json()
     img_base64 = data['image']
     nparr = np.frombuffer(bytes.fromhex(img_base64), np.uint8)

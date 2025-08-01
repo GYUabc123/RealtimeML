@@ -51,6 +51,7 @@
 // export default Camera;
 
 import React, { useRef } from 'react';
+import axios from 'axios';
 
 function Camera({ label, onCaptureImages }) {
   const videoRef = useRef();
@@ -98,6 +99,31 @@ function Camera({ label, onCaptureImages }) {
   };
 
 
+  const runModel = async () => {
+    const ctx = canvasRef.current.getContext('2d'); // Ensure canvas context is available
+    if (!videoRef.current) {
+      alert("Please start the camera first.");
+      return;
+    }
+
+    // Get image from video and convert to hex
+    ctx.drawImage(videoRef.current, 0, 0, 128, 128); // Draw the current video frame to the canvas
+    const blob = await new Promise(res => canvasRef.current.toBlob(res, 'image/jpeg')); // Convert canvas to blob
+    const buffer = await blob.arrayBuffer(); // Convert blob to ArrayBuffer
+    const hexImage = await blobToHex(blob); // Convert blob to hex string
+
+    // Send POST request
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/predict', {
+        image: hexImage
+      });
+      console.log('Prediction:', response.data.label);
+      alert(`Prediction: ${response.data.label}`);
+    } catch (error) {
+      console.error('Prediction error:', error);
+    }
+  }
+
   return (
     <div>
       <video ref={videoRef} width="300" height="200" />
@@ -105,6 +131,7 @@ function Camera({ label, onCaptureImages }) {
       <div>
         <button onClick={startCamera}>Start Camera</button>
         <button onClick={captureImages}>Capture Images</button>
+        <button onClick={runModel}>Run</button>
       </div>
     </div>
   );
