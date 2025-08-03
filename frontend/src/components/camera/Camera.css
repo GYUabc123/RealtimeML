@@ -36,4 +36,46 @@
 
 .predict-button {
   background-color: #4CAF50;
-} 
+}
+
+.predict-button.stop {
+  background-color: #f44336;
+}
+
+.prediction-display {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+}
+
+.prediction-text {
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.prediction-label {
+  color: #495057;
+  margin-right: 10px;
+}
+
+.prediction-value {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.confidence-text {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.confidence-label {
+  margin-right: 8px;
+}
+
+.confidence-value {
+  font-weight: bold;
+  color: #007bff;
+}

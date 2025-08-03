@@ -127,5 +127,40 @@ def predict():
         'available_classes': list(set(labels))
     })
 
+# This is the optimized endpoint for real-time streaming predictions.
+@app.route('/predict-stream', methods=['POST'])
+def predict_stream():
+    """
+    Optimized endpoint for real-time streaming predictions.
+    """
+    global model, labels, features
+    model_path = 'model/model.pkl'
+    
+    if not os.path.exists(model_path):
+        return jsonify({'error': 'Model not found. Please train the model first.'}), 404
+    
+    if model is None:
+        with open(model_path, 'rb') as f:
+            model_data = pickle.load(f)
+            model = model_data['model']
+            labels = model_data['labels']
+            features = model_data['features']
+
+    data = request.get_json()
+    img_base64 = data['image']
+    nparr = np.frombuffer(bytes.fromhex(img_base64), np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+    img = cv2.resize(img, (64, 64))
+    prediction = model.predict([img.flatten()])
+    
+    # Get prediction confidence (distance to nearest neighbor)
+    distances, indices = model.kneighbors([img.flatten()])
+    confidence = 1 / (1 + distances[0][0])  # Convert distance to confidence
+    
+    return jsonify({
+        'label': prediction[0],
+        'confidence': float(confidence)
+    })
+
 if __name__ == '__main__':
     app.run(debug=True)

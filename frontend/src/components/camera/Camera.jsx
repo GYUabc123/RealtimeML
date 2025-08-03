@@ -1,10 +1,14 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import './Camera.css';
 
 function Camera({ label, onCaptureImages, onTrainSuccess }) {
   const videoRef = useRef();
   const canvasRef = React.useRef();
+  const [isRunning, setIsRunning] = useState(false);
+  const [prediction, setPrediction] = useState('');
+  const [confidence, setConfidence] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const startCamera = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -47,46 +51,80 @@ function Camera({ label, onCaptureImages, onTrainSuccess }) {
     onCaptureImages(imgs, label);
   };
 
+  const predictFrame = async () => {
+    if (!videoRef.current || !isRunning) return;
 
-  const runModel = async () => {
-    const ctx = canvasRef.current.getContext('2d'); // Ensure canvas context is available
+    try {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.drawImage(videoRef.current, 0, 0, 128, 128);
+      const blob = await new Promise(res => canvasRef.current.toBlob(res, 'image/jpeg'));
+      const hexImage = await blobToHex(blob);
+
+      const response = await axios.post('http://127.0.0.1:5000/predict-stream', {
+        image: hexImage
+      });
+      
+      const { label: predictedLabel, confidence: conf } = response.data;
+      setPrediction(predictedLabel);
+      setConfidence(conf);
+    } catch (error) {
+      console.error('Prediction error:', error);
+      setPrediction('Error');
+      setConfidence(0);
+    }
+  };
+
+  // Real-time prediction loop
+  useEffect(() => {
+    let intervalId;
+    
+    if (isRunning && videoRef.current) {
+      // Start prediction loop
+      intervalId = setInterval(predictFrame, 500); // Predict every 500ms
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRunning]);
+
+  const handleStartStopPrediction = () => {
     if (!videoRef.current) {
       alert("Please start the camera first.");
       return;
     }
 
-    // Get image from video and convert to hex
-    ctx.drawImage(videoRef.current, 0, 0, 128, 128); // Draw the current video frame to the canvas
-    const blob = await new Promise(res => canvasRef.current.toBlob(res, 'image/jpeg')); // Convert canvas to blob
-    const buffer = await blob.arrayBuffer(); // Convert blob to ArrayBuffer
-    const hexImage = await blobToHex(blob); // Convert blob to hex string
-
-    // Send POST request
-    try {
-      const response = await axios.post('http://127.0.0.1:5000/predict', {
-        image: hexImage
-      });
-      
-      const { label: predictedLabel, confidence, available_classes } = response.data;
-      const confidencePercent = (confidence * 100).toFixed(1);
-      
-      console.log('Prediction:', predictedLabel, 'Confidence:', confidencePercent + '%');
-      
-      alert(`Prediction: ${predictedLabel}\nConfidence: ${confidencePercent}%\nAvailable classes: ${available_classes.join(', ')}`);
-    } catch (error) {
-      console.error('Prediction error:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        alert(`Prediction failed: ${error.response.data.error}`);
-      } else {
-        alert('Prediction failed. Please try again.');
-      }
+    setIsRunning(prev => !prev);
+    
+    if (!isRunning) {
+      setPrediction('');
+      setConfidence(0);
     }
-  }
+  };
 
   return (
     <div className="camera-container">
       <video ref={videoRef} width="300" height="200" className="camera-video" />
       <canvas ref={canvasRef} width="128" height="128" style={{ display: 'none' }} />
+      
+      {/* Prediction Display */}
+      {isRunning && (
+        <div className="prediction-display">
+          <div className="prediction-text">
+            <span className="prediction-label">Detected:</span>
+            <span className="prediction-value">{prediction || 'Processing...'}</span>
+          </div>
+          {confidence > 0 && (
+            <div className="confidence-text">
+              <span className="confidence-label">Confidence:</span>
+              <span className="confidence-value">{(confidence * 100).toFixed(1)}%</span>
+            </div>
+          )}
+        </div>
+      )}
+      
       <div className="camera-buttons">
         <button 
           onClick={startCamera}
@@ -94,17 +132,19 @@ function Camera({ label, onCaptureImages, onTrainSuccess }) {
         >
           Start Camera
         </button>
+
         <button 
           onClick={captureImages}
           className="camera-button capture-button"
         >
           Capture Images
         </button>
+
         <button 
-          onClick={runModel}
-          className="camera-button predict-button"
+          onClick={handleStartStopPrediction}
+          className={`camera-button predict-button ${isRunning ? 'stop' : 'run'}`}
         >
-          Run Prediction
+          {isRunning ? 'Stop Prediction' : 'Run Prediction'}
         </button>
       </div>
     </div>
