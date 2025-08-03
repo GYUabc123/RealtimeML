@@ -1,59 +1,8 @@
-// import React, { useRef, useState } from 'react';
-// import axios from 'axios';
-
-// function Camera() {
-//   const videoRef = useRef();
-//   const canvasRef = useRef();
-//   const [label, setLabel] = useState('');
-
-//   const startCamera = async () => {
-//     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//     videoRef.current.srcObject = stream;
-//     videoRef.current.play();
-//   };
-
-//   const captureImages = async () => {
-//     const ctx = canvasRef.current.getContext('2d');
-//     let imgs = [];
-
-//     for (let i = 0; i < 40; i++) {
-//       ctx.drawImage(videoRef.current, 0, 0, 128, 128);
-//       const blob = await new Promise(res => canvasRef.current.toBlob(res, 'image/jpeg'));
-//       const buffer = await blob.arrayBuffer();
-//       imgs.push(Buffer.from(buffer).toString('hex'));
-//     }
-
-//     await axios.post('http://localhost:5000/upload', {
-//       images: imgs,
-//       label
-//     });
-//   };
-
-//   const trainModel = async () => {
-//     await axios.post('http://localhost:5000/train');
-//     alert("Model trained!");
-//   };
-
-//   return (
-//     <div>
-//       <video ref={videoRef} width="300" height="200" />
-//       <canvas ref={canvasRef} width="128" height="128" style={{ display: 'none' }} />
-//       <div>
-//         <input value={label} onChange={e => setLabel(e.target.value)} placeholder="Label" />
-//         <button onClick={startCamera}>Start Camera</button>
-//         <button onClick={captureImages}>Capture Images</button>
-//         <button onClick={trainModel}>Train</button>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Camera;
-
 import React, { useRef } from 'react';
 import axios from 'axios';
+import './Camera.css';
 
-function Camera({ label, onCaptureImages }) {
+function Camera({ label, onCaptureImages, onTrainSuccess }) {
   const videoRef = useRef();
   const canvasRef = React.useRef();
 
@@ -86,7 +35,7 @@ function Camera({ label, onCaptureImages }) {
     const ctx = canvasRef.current.getContext('2d');
     let imgs = [];
 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 100; i++) {
       ctx.drawImage(videoRef.current, 0, 0, 128, 128);
       const blob = await new Promise((res) =>
         canvasRef.current.toBlob(res, 'image/jpeg')
@@ -117,21 +66,46 @@ function Camera({ label, onCaptureImages }) {
       const response = await axios.post('http://127.0.0.1:5000/predict', {
         image: hexImage
       });
-      console.log('Prediction:', response.data.label);
-      alert(`Prediction: ${response.data.label}`);
+      
+      const { label: predictedLabel, confidence, available_classes } = response.data;
+      const confidencePercent = (confidence * 100).toFixed(1);
+      
+      console.log('Prediction:', predictedLabel, 'Confidence:', confidencePercent + '%');
+      
+      alert(`Prediction: ${predictedLabel}\nConfidence: ${confidencePercent}%\nAvailable classes: ${available_classes.join(', ')}`);
     } catch (error) {
       console.error('Prediction error:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`Prediction failed: ${error.response.data.error}`);
+      } else {
+        alert('Prediction failed. Please try again.');
+      }
     }
   }
 
   return (
-    <div>
-      <video ref={videoRef} width="300" height="200" />
+    <div className="camera-container">
+      <video ref={videoRef} width="300" height="200" className="camera-video" />
       <canvas ref={canvasRef} width="128" height="128" style={{ display: 'none' }} />
-      <div>
-        <button onClick={startCamera}>Start Camera</button>
-        <button onClick={captureImages}>Capture Images</button>
-        <button onClick={runModel}>Run</button>
+      <div className="camera-buttons">
+        <button 
+          onClick={startCamera}
+          className="camera-button start-camera-button"
+        >
+          Start Camera
+        </button>
+        <button 
+          onClick={captureImages}
+          className="camera-button capture-button"
+        >
+          Capture Images
+        </button>
+        <button 
+          onClick={runModel}
+          className="camera-button predict-button"
+        >
+          Run Prediction
+        </button>
       </div>
     </div>
   );

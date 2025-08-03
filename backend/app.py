@@ -36,26 +36,79 @@ def upload():
     return jsonify({'status': 'added', 'count': len(features)})
 
 
+@app.route('/clear', methods=['POST'])
+def clear_data():
+    """
+    Clear all training data to start fresh.
+    """
+    global model, labels, features
+    model = None
+    labels = []
+    features = []
+    
+    # Remove existing model file
+    model_path = 'model/model.pkl'
+    if os.path.exists(model_path):
+        os.remove(model_path)
+    
+    return jsonify({'status': 'cleared'})
+
+
+@app.route('/classes', methods=['GET'])
+def get_classes():
+    """
+    Get the current classes and their counts.
+    """
+    global labels
+    from collections import Counter
+    class_counts = Counter(labels)
+    return jsonify({'classes': dict(class_counts), 'total_samples': len(labels)})
+
+
 @app.route('/train', methods=['POST'])
 def train():
-    global model
+    global model, labels, features
+    
+    if len(set(labels)) < 2:
+        return jsonify({'error': 'Need at least 2 different classes to train the model'}), 400
+    
+    if len(features) < 10:
+        return jsonify({'error': 'Need at least 10 samples to train the model'}), 400
+    
     model = KNeighborsClassifier(n_neighbors=3)
     model.fit(features, labels)
+    
+    # Save model and training data
+    model_data = {
+        'model': model,
+        'labels': labels,
+        'features': features
+    }
+    
     with open('model/model.pkl', 'wb') as f:
-        pickle.dump(model, f)
-    return jsonify({'status': 'trained'})
+        pickle.dump(model_data, f)
+    
+    return jsonify({
+        'status': 'trained',
+        'classes': list(set(labels)),
+        'total_samples': len(features)
+    })
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    global model
+    global model, labels, features
     model_path = 'model/model.pkl'
+    
     if not os.path.exists(model_path):
         return jsonify({'error': 'Model not found. Please train the model first.'}), 404
     
     if model is None:
         with open(model_path, 'rb') as f:
-            model = pickle.load(f)
+            model_data = pickle.load(f)
+            model = model_data['model']
+            labels = model_data['labels']
+            features = model_data['features']
 
     data = request.get_json()
     img_base64 = data['image']
@@ -63,7 +116,16 @@ def predict():
     img = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
     img = cv2.resize(img, (64, 64))
     prediction = model.predict([img.flatten()])
-    return jsonify({'label': prediction[0]})
+    
+    # Get prediction confidence (distance to nearest neighbor)
+    distances, indices = model.kneighbors([img.flatten()])
+    confidence = 1 / (1 + distances[0][0])  # Convert distance to confidence
+    
+    return jsonify({
+        'label': prediction[0],
+        'confidence': float(confidence),
+        'available_classes': list(set(labels))
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
