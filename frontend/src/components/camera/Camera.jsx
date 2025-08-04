@@ -39,7 +39,7 @@ function Camera({ label, onCaptureImages, onTrainSuccess }) {
     const ctx = canvasRef.current.getContext('2d');
     let imgs = [];
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 40; i++) {
       ctx.drawImage(videoRef.current, 0, 0, 128, 128);
       const blob = await new Promise((res) =>
         canvasRef.current.toBlob(res, 'image/jpeg')
