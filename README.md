@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Real-Time Machine Learning System
+=======
+ # Real-Time Machine Learning System
+>>>>>>> 123c93f16d9fa412ed5bc2754a3f0298a70bb4e0
 
 This is a real-time machine learning system that can classify objects using your webcam. It uses a K-Nearest Neighbors (KNN) algorithm to classify images.
 
@@ -101,4 +105,8 @@ You can add as many classes as you want:
 - **"Need at least 2 different classes"**: Add more classes before training
 - **"Need at least 10 samples"**: Capture more images before training
 - **Low confidence predictions**: Add more training samples or improve image quality
+<<<<<<< HEAD
 - **Camera not working**: Check browser permissions for camera access 
+=======
+- **Camera not working**: Check browser permissions for camera access 
+>>>>>>> 123c93f16d9fa412ed5bc2754a3f0298a70bb4e0
