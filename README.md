@@ -1,70 +1,103 @@
-# Getting Started with Create React App
+# Real-Time Machine Learning System
+This is a real-time machine learning system that can classify objects using your webcam. It uses a K-Nearest Neighbors (KNN) algorithm to classify images.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Features
 
-## Available Scripts
+- **Multi-class classification**: Train the model on multiple different classes (e.g., human, cup, phone, etc.)
+- **Real-time prediction**: Use your webcam to get instant predictions
+- **Confidence scoring**: See how confident the model is in its predictions
+- **Visual feedback**: Clear status indicators and progress tracking
 
-In the project directory, you can run:
+## How to Use
 
-### `npm start`
+### 1. Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. Install backend dependencies:
+   ```bash
+   cd backend
+   pip install flask flask-cors opencv-python numpy scikit-learn
+   ```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+2. Install frontend dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
 
-### `npm test`
+### 2. Running the Application
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Start the backend server:
+   ```bash
+   cd backend
+   python app.py
+   ```
 
-### `npm run build`
+2. Start the frontend (in a new terminal):
+   ```bash
+   cd frontend
+   npm start
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. Open your browser to `http://localhost:3000`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 3. Training Multiple Classes
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**Step 1: Add your first class**
+- Enter a label (e.g., "human") in the input field
+- Click "Start Camera" to activate your webcam
+- Click "Capture Images" to take 40 training images
+- The system will show you've added 40 images for "human"
 
-### `npm run eject`
+**Step 2: Add your second class**
+- Change the label to something else (e.g., "cup")
+- Click "Capture Images" again to take 40 images of the cup
+- Now you have 80 total samples across 2 classes
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**Step 3: Train the model**
+- Click "Train Model" to train the KNN classifier
+- The system will confirm training with the classes and sample count
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+**Step 4: Test predictions**
+- Click "Run Prediction" to test the model with your webcam
+- You'll see the predicted class and confidence score
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 4. Adding More Classes
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+You can add as many classes as you want:
+- Simply change the label and capture more images
+- Each class should have at least 20-40 images for good results
+- Retrain the model after adding new classes
 
-## Learn More
+### 5. Clearing Data
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- Use the "Clear All Data" button to start fresh
+- This removes all training data and the trained model
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Requirements
 
-### Code Splitting
+- **Backend**: Python 3.7+, Flask, OpenCV, NumPy, scikit-learn
+- **Frontend**: Node.js, React
+- **Hardware**: Webcam for image capture
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## How It Works
 
-### Analyzing the Bundle Size
+1. **Image Processing**: Images are captured at 128x128 pixels, converted to grayscale, and resized to 64x64 for processing
+2. **Feature Extraction**: Each image is flattened into a 4096-dimensional feature vector
+3. **Training**: KNN algorithm learns from the training data with k=3 neighbors
+4. **Prediction**: New images are classified based on similarity to training examples
+5. **Confidence**: Confidence is calculated based on distance to nearest neighbor
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Tips for Better Results
 
-### Making a Progressive Web App
+- **Good lighting**: Ensure your webcam area is well-lit
+- **Consistent positioning**: Try to capture objects from similar angles
+- **Multiple samples**: Capture 40+ images per class for better accuracy
+- **Clear backgrounds**: Use a simple, consistent background
+- **Variety**: Capture objects from slightly different angles and positions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Troubleshooting
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **"Need at least 2 different classes"**: Add more classes before training
+- **"Need at least 10 samples"**: Capture more images before training
+- **Low confidence predictions**: Add more training samples or improve image quality
+- **Camera not working**: Check browser permissions for camera access 
