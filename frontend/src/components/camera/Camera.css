@@ -9,6 +9,8 @@
 
 .camera-buttons {
   margin-top: 15px;
+  text-align: center;
+  /* padding-left: 10px; */
 }
 
 .camera-button {
@@ -78,4 +80,11 @@
 .confidence-value {
   font-weight: bold;
   color: #007bff;
+}
+
+.camera-and-model{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
 }

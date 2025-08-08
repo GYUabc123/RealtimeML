@@ -117,9 +117,24 @@ def predict():
     img = cv2.resize(img, (64, 64))
     prediction = model.predict([img.flatten()])
     
-    # Get prediction confidence (distance to nearest neighbor)
-    distances, indices = model.kneighbors([img.flatten()])
-    confidence = 1 / (1 + distances[0][0])  # Convert distance to confidence
+    # Get prediction confidence using k-nearest neighbors
+    k = min(3, len(features))  # Use k=3 or all available samples if less than 3
+    distances, indices = model.kneighbors([img.flatten()], n_neighbors=k)
+    
+    # Calculate confidence based on the nearest neighbor distance
+    nearest_distance = distances[0][0]
+    
+    # Use a simpler confidence calculation based on distance magnitude
+    # Normalize by a reasonable distance scale for 64x64 grayscale images
+    # Maximum possible distance is sqrt(4096 * 255^2) ≈ 16320
+    max_possible_distance = 255 * np.sqrt(64 * 64)
+    
+    if nearest_distance > 0:
+        # Normalize distance and use exponential decay
+        normalized_distance = nearest_distance / max_possible_distance
+        confidence = np.exp(-normalized_distance * 10)  # Scale factor for better sensitivity
+    else:
+        confidence = 1.0  # Perfect match
     
     return jsonify({
         'label': prediction[0],
@@ -153,9 +168,24 @@ def predict_stream():
     img = cv2.resize(img, (64, 64))
     prediction = model.predict([img.flatten()])
     
-    # Get prediction confidence (distance to nearest neighbor)
-    distances, indices = model.kneighbors([img.flatten()])
-    confidence = 1 / (1 + distances[0][0])  # Convert distance to confidence
+    # Get prediction confidence using k-nearest neighbors
+    k = min(3, len(features))  # Use k=3 or all available samples if less than 3
+    distances, indices = model.kneighbors([img.flatten()], n_neighbors=k)
+    
+    # Calculate confidence based on the nearest neighbor distance
+    nearest_distance = distances[0][0]
+    
+    # Use a simpler confidence calculation based on distance magnitude
+    # Normalize by a reasonable distance scale for 64x64 grayscale images
+    # Maximum possible distance is sqrt(4096 * 255^2) ≈ 16320
+    max_possible_distance = 255 * np.sqrt(64 * 64)
+    
+    if nearest_distance > 0:
+        # Normalize distance and use exponential decay
+        normalized_distance = nearest_distance / max_possible_distance
+        confidence = np.exp(-normalized_distance * 10)  # Scale factor for better sensitivity
+    else:
+        confidence = 1.0  # Perfect match
     
     return jsonify({
         'label': prediction[0],

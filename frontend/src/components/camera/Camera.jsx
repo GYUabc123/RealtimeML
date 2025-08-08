@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import './Camera.css';
+import Model from '../displayModel/Model';
 
 function Camera({ label, onCaptureImages, onTrainSuccess }) {
   const videoRef = useRef();
@@ -106,9 +107,38 @@ function Camera({ label, onCaptureImages, onTrainSuccess }) {
 
   return (
     <div className="camera-container">
-      <video ref={videoRef} width="300" height="200" className="camera-video" />
-      <canvas ref={canvasRef} width="128" height="128" style={{ display: 'none' }} />
-      
+      <div className="camera-and-model">
+        <div className="left-camera-and-model">
+          <video ref={videoRef} width="500" height="350" className="camera-video" />
+          <canvas ref={canvasRef} width="128" height="128" style={{ display: 'none' }} />
+          <div className="camera-buttons">
+            <button 
+              onClick={startCamera}
+              className="camera-button start-camera-button"
+            >
+              Start Camera
+            </button>
+
+            <button 
+              onClick={captureImages}
+              className="camera-button capture-button"
+            >
+              Capture Images
+            </button>
+
+            <button 
+              onClick={handleStartStopPrediction}
+              className={`camera-button predict-button ${isRunning ? 'stop' : 'run'}`}
+            >
+              {isRunning ? 'Stop Prediction' : 'Run Prediction'}
+            </button>
+          </div>        
+        </div>
+        
+        <div className="right-camera-and-model">
+          <Model />
+        </div>
+      </div>
       {/* Prediction Display */}
       {isRunning && (
         <div className="prediction-display">
@@ -124,29 +154,6 @@ function Camera({ label, onCaptureImages, onTrainSuccess }) {
           )}
         </div>
       )}
-      
-      <div className="camera-buttons">
-        <button 
-          onClick={startCamera}
-          className="camera-button start-camera-button"
-        >
-          Start Camera
-        </button>
-
-        <button 
-          onClick={captureImages}
-          className="camera-button capture-button"
-        >
-          Capture Images
-        </button>
-
-        <button 
-          onClick={handleStartStopPrediction}
-          className={`camera-button predict-button ${isRunning ? 'stop' : 'run'}`}
-        >
-          {isRunning ? 'Stop Prediction' : 'Run Prediction'}
-        </button>
-      </div>
     </div>
   );
 }
