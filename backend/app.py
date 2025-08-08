@@ -5,6 +5,7 @@ import numpy as np                               # Numerical operations and arra
 import os                                        # File system operations
 import pickle                                    # Saving/loading trained model
 from sklearn.neighbors import KNeighborsClassifier  # KNN algorithm for classification
+import glob                                      # For finding files with patterns
 
 app = Flask(__name__)   # Create a Flask web server instance
 CORS(app)               # Enable CORS so this API can be called from other domains (e.g., a frontend)
@@ -190,6 +191,60 @@ def predict_stream():
     return jsonify({
         'label': prediction[0],
         'confidence': float(confidence)
+    })
+
+@app.route('/models', methods=['GET'])
+def get_models():
+    """
+    Get all available models from the model directory.
+    """
+    model_dir = 'model'
+    models = []
+    
+    if os.path.exists(model_dir):
+        # Get all .pkl files in the model directory
+        model_files = glob.glob(os.path.join(model_dir, '*.pkl'))
+        
+        for model_file in model_files:
+            try:
+                # Get file info
+                file_size = os.path.getsize(model_file)
+                file_name = os.path.basename(model_file)
+                file_path = model_file
+                
+                # Try to load model info if possible
+                model_info = {
+                    'name': file_name,
+                    'path': file_path,
+                    'size': file_size,
+                    'size_mb': round(file_size / (1024 * 1024), 2)
+                }
+                
+                # Try to get model details if it's a valid pickle file
+                try:
+                    with open(model_file, 'rb') as f:
+                        model_data = pickle.load(f)
+                        if isinstance(model_data, dict):
+                            if 'labels' in model_data:
+                                model_info['classes'] = list(set(model_data['labels']))
+                                model_info['total_samples'] = len(model_data['labels'])
+                            if 'model' in model_data:
+                                model_info['model_type'] = type(model_data['model']).__name__
+                except Exception as e:
+                    model_info['error'] = f"Could not load model details: {str(e)}"
+                
+                models.append(model_info)
+                
+            except Exception as e:
+                models.append({
+                    'name': os.path.basename(model_file),
+                    'path': model_file,
+                    'error': f"Error reading file: {str(e)}"
+                })
+    
+    return jsonify({
+        'models': models,
+        'total_count': len(models)
     })
 
 if __name__ == '__main__':

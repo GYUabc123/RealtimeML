@@ -84,7 +84,15 @@
 
 .camera-and-model{
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  /* justify-content: space-between; */
   padding: 10px;
+  
+}
+
+.left-camera-and-model{
+  padding-right: 10px;
+}
+
+.right-camera-and-model{
+  padding-left: 10px;
 }
