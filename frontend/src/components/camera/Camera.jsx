@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import './Camera.css';
-import Model from '../displayModel/Model';
 
 function Camera({ label, onCaptureImages, onTrainSuccess }) {
   const videoRef = useRef();
@@ -135,9 +134,7 @@ function Camera({ label, onCaptureImages, onTrainSuccess }) {
           </div>        
         </div>
         
-        <div className="right-camera-and-model">
-          <Model />
-        </div>
+
       </div>
       {/* Prediction Display */}
       {isRunning && (

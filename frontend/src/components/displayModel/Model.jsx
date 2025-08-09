@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Model.css';
 
-function Model() {
+function Model({ onModelSelect, selectedModel }) {
     const [models, setModels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -69,14 +69,20 @@ function Model() {
             ) : (
                 <div className="models-grid">
                     {models.map((model, index) => (
-                        <div key={index} className="model-card">
+                        <div 
+                            key={index} 
+                            className={`model-card clickable ${selectedModel && selectedModel.name === model.name ? 'selected' : ''}`}
+                            onClick={() => {
+                                onModelSelect(model);
+                            }}
+                        >
                             <div className="model-header">
                                 <h3>{model.name}</h3>
                                 <span className="model-size">{model.size_mb} MB</span>
                             </div>
                             
                             <div className="model-details">
-                                <div className="detail-item">
+                                {/* <div className="detail-item">
                                     <strong>Path:</strong> {model.path}
                                 </div>
                                 
@@ -96,13 +102,14 @@ function Model() {
                                     <div className="detail-item">
                                         <strong>Total Samples:</strong> {model.total_samples}
                                     </div>
-                                )}
+                                )} */}
                                 
                                 {model.error && (
                                     <div className="detail-item error">
                                         <strong>Error:</strong> {model.error}
                                     </div>
                                 )}
+
                             </div>
                         </div>
                     ))}

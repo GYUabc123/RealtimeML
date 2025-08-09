@@ -89,25 +89,44 @@
 
 .models-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, 200px);
+    gap: 10px;
     padding: 10px;
     overflow-y: auto;
     flex: 1;
+    justify-content: center;
 }
 
 .model-card {
     background: white;
     border-radius: 8px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 1px solid #e0e0e0;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.model-card:hover {
+.model-card.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    user-select: none;
+}
+
+.model-card.clickable:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: #f8f9fa;
+}
+
+.model-card.clickable:active {
+    transform: translateY(0);
+    background-color: #e9ecef;
+}
+
+.model-card.selected {
+    border: 2px solid #007bff;
+    background-color: #e3f2fd;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
 }
 
 .model-header {
@@ -117,13 +136,19 @@
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
+    gap: 10px;
 }
 
 .model-header h3 {
     margin: 0;
     color: #333;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .model-size {
@@ -131,8 +156,9 @@
     color: #495057;
     padding: 4px 8px;
     border-radius: 12px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
+    flex-shrink: 0;
 }
 
 .model-details {

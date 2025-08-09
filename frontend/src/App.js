@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Camera from './components/camera/Camera';
 import TrainForm from './components/trainForm/TrainForm';
+import Model from './components/displayModel/Model';
 import axios from 'axios';
 import './App.css';
 
@@ -9,6 +10,7 @@ function App() {
   const [classes, setClasses] = useState({});
   const [totalSamples, setTotalSamples] = useState(0);
   const [isTrained, setIsTrained] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(null);
 
   // Load current classes on component mount
   useEffect(() => {
@@ -50,11 +52,16 @@ function App() {
         setClasses({});
         setTotalSamples(0);
         setIsTrained(false);
+        setSelectedModel(null);
         alert('All training data cleared!');
       } catch (error) {
         alert('Error clearing data');
       }
     }
+  };
+
+  const handleModelSelection = (model) => {
+    setSelectedModel(model);
   };
 
   return (
@@ -71,6 +78,19 @@ function App() {
         <p><strong>Model Status:</strong> {isTrained ? '✅ Trained' : '❌ Not Trained'}</p>
         {Object.keys(classes).length >= 2 && totalSamples >= 10 && !isTrained && (
           <p className="ready-to-train">✅ Ready to train! (Need at least 2 classes and 10 samples)</p>
+        )}
+        
+        {/* Selected Model Info */}
+        {selectedModel && (
+          <div className="selected-model-info">
+            <h4>Selected Model:</h4>
+            <p><strong>Name:</strong> {selectedModel.name}</p>
+            <p><strong>Size:</strong> {selectedModel.size_mb} MB</p>
+            {selectedModel.path && <p><strong>Path:</strong> {selectedModel.path}</p>}
+            {selectedModel.model_type && <p><strong>Type:</strong> {selectedModel.model_type}</p>}
+            {selectedModel.classes && <p><strong>Classes:</strong> {selectedModel.classes.join(', ')}</p>}
+            {selectedModel.total_samples && <p><strong>Total Samples:</strong> {selectedModel.total_samples}</p>}
+          </div>
         )}
       </div>
 
@@ -90,12 +110,19 @@ function App() {
         </button>
       </div>
 
-      <Camera 
-        label={label} 
-        onCaptureImages={handleCaptureImages}
-        onTrainSuccess={() => setIsTrained(true)}
-      />
-      <TrainForm onTrainSuccess={() => setIsTrained(true)} />
+      <div className="main-content">
+        <div className="left-section">
+          <Camera 
+            label={label} 
+            onCaptureImages={handleCaptureImages}
+            onTrainSuccess={() => setIsTrained(true)}
+          />
+          <TrainForm onTrainSuccess={() => setIsTrained(true)} />
+        </div>
+        <div className="right-section">
+          <Model onModelSelect={handleModelSelection} selectedModel={selectedModel} />
+        </div>
+      </div>
     </div>
   );
 }
